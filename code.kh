@@ -1,0 +1,25 @@
+// This is a sample code.kh file
+
+whole x -> 10;
+fraction y -> 3.14159;
+truth flag -> yes;
+character letter -> 'a';
+
+/* Multi-line comment
+   Testing symbol table
+   and parsing capabilities
+*/
+
+say "Hello, world!"; 
+
+if (x > 5) {
+	whole ali -> 5;
+    say "X is greater than 5";
+} else {
+    say "X is less than or equal to 5";
+}
+
+while (y < 10.5) {
+    y -> y + 1;
+}
+
