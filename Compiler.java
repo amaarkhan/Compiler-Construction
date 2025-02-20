@@ -25,6 +25,78 @@ class RegularExpressions {
     public static final String COMMENTS = "//.*|/\\*[\\s\\S]*?\\*/";
 }
 
+class DFALexer {
+    private static final Set<String> keywords = Set.of("whole", "fraction", "truth", "character", "while", "if", "else", "end", "say");
+    private static final Set<Character> operators = Set.of('+', '-', '*', '/', '%', '^');
+    private static final Set<Character> punctuation = Set.of(';', '(', ')', '{', '}', ',');
+
+    public static List<Token> tokenize(String input) throws Exception {
+        List<Token> tokens = new ArrayList<>();
+        int i = 0;
+        int lineNumber = 1;
+
+        while (i < input.length()) {
+            char c = input.charAt(i);
+
+            // Ignore whitespace
+            if (Character.isWhitespace(c)) {
+                if (c == '\n') lineNumber++;
+                i++;
+                continue;
+            }
+
+            // Identifiers and Keywords (DFA for identifiers)
+            if (Character.isLowerCase(c)) {
+                StringBuilder identifier = new StringBuilder();
+                while (i < input.length() && Character.isLowerCase(input.charAt(i))) {
+                    identifier.append(input.charAt(i));
+                    i++;
+                }
+                String word = identifier.toString();
+                tokens.add(new Token(word, keywords.contains(word) ? "Keyword" : "Identifier"));
+                continue;
+            }
+
+            // Numbers (DFA for numbers)
+            if (Character.isDigit(c)) {
+                StringBuilder number = new StringBuilder();
+                while (i < input.length() && (Character.isDigit(input.charAt(i)) || input.charAt(i) == '.')) {
+                    number.append(input.charAt(i));
+                    i++;
+                }
+                tokens.add(new Token(number.toString(), "Constant"));
+                continue;
+            }
+
+            // Operators (DFA for operators)
+            if (operators.contains(c)) {
+                tokens.add(new Token(String.valueOf(c), "Operator"));
+                i++;
+                continue;
+            }
+
+            // Punctuation
+            if (punctuation.contains(c)) {
+                tokens.add(new Token(String.valueOf(c), "Punctuation"));
+                i++;
+                continue;
+            }
+
+            // Assignment Operator (`->`)
+            if (c == '-' && i + 1 < input.length() && input.charAt(i + 1) == '>') {
+                tokens.add(new Token("->", "Assignment Operator"));
+                i += 2;
+                continue;
+            }
+
+            // Invalid Token
+            throw new Exception("❌ Lexical Error: Invalid token '" + c + "' at line " + lineNumber);
+        }
+
+        return tokens;
+    }
+}
+
 class Token {
     String value;
     String type;
@@ -651,14 +723,31 @@ public class Compiler {
 
             // Step 1: Read source code from file
             String sourceCode = new String(Files.readAllBytes(Paths.get("code.kh")));
-
+List<Token> tokens = Tokenizer.tokenize(sourceCode);
+            
+            
             // Step 2: Tokenization
             System.out.println("\n🟢 STEP 1: LEXICAL ANALYSIS (TOKENIZATION)");
-            List<Token> tokens = Tokenizer.tokenize(sourceCode);
+            
             System.out.println("✅ Total Tokens Found: " + tokens.size());
             System.out.println("-------------------------------------------------");
             for (int i = 0; i < tokens.size(); i++) {
                 System.out.printf("  %3d. %-20s -> %s\n", (i + 1), tokens.get(i).value, tokens.get(i).type);
+            }
+            System.out.println("=================================================");
+            
+            
+            
+            
+            
+            
+             System.out.println("\n🟢 STEP 1: DFA-BASED TOKENIZATION");
+            
+            
+            System.out.println("✅ Total Tokens Found: " + tokens.size());
+            System.out.println("-------------------------------------------------");
+            for (Token token : tokens) {
+                System.out.println(token);
             }
             System.out.println("=================================================");
 
@@ -728,5 +817,4 @@ public class Compiler {
         }
     }
 }
-
 
